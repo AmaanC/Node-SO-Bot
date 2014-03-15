@@ -1,6 +1,9 @@
 var req = require('request');
 var jsdom = require('jsdom');
 
+var bot = require('./source/bot');
+bot.adapter = require('./source/adapter');
+
 var WebSocketClient = require('websocket').client;
 
 var j = req.jar();
@@ -53,7 +56,8 @@ var loginChat = function (callback) {
     });
 };
 
-var sendMessage = function (text) {
+// FIXME overwritting sendToRoom
+var sendMessage = bot.adapter.out.sendToRoom = function (text) {
     if (!chatFkey) {
         console.log('fkey for chat missing');
         return false;
@@ -123,6 +127,8 @@ var getSocketURL = function (callback) {
 
 var connect = function () {
     getSocketURL(function (url) {
+        //two guys walk into a bar. the bartender asks them "is this some kind of joke?"
+        bot.adapter.init(chatFkey, 1);// HARDCODE FIXME
         var client = new WebSocketClient();
         client.on('connectFailed', function(error) {
             console.log('Connect Error: ' + error.toString());
@@ -140,9 +146,10 @@ var connect = function () {
                 if (message.type === 'utf8') {
                     console.log('Received: ', message.utf8Data);
                     var obj = JSON.parse(message.utf8Data);
-                    if (obj.r1 && obj.r1.e && obj.r1.e[0].content === "``help") {
+                    if (obj.r1 && obj.r1.e) {
+                        console.log(obj.r1);
+                        bot.parseMessage(obj.r1.e[0]);
                         console.log('DUDE!');
-                        sendMessage('I\'M ALIVE!');
                     }
                 }
             });
