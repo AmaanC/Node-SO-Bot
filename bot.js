@@ -1,11 +1,10 @@
 var req = require('request');
 var jsdom = require('jsdom');
 
-var options = {
-    jar: true
-};
+var WebSocketClient = require('websocket').client;
 
-var request = req.defaults(options);
+var j = req.jar();
+var request = req.defaults({jar: j});
 
 // The login process works in two stages. First, you go to the login page. From the login page, you take the fkey,
 // and then you send a POST request to login, using your details and the fkey
@@ -100,9 +99,60 @@ var loginSO = function (callback) {
     );
 };
 
-var login = function (email, password, callback){
+var login = function (email, password, callback) {
     loginSEOpenID(email, password, callback);
+};
+
+
+
+var getSocketURL = function (callback) {
+    if (!chatFkey) {
+        console.log('Cannot get ws URL without fkey');
+        return false;
+    }
+    request.post({
+        url: 'http://chat.stackoverflow.com/ws-auth',
+        form: {
+            roomid: 1,
+            fkey: chatFkey
+        }
+    }, function (error, response, body) {
+        callback(JSON.parse(body).url);
+    });
+};
+
+var connect = function () {
+    getSocketURL(function (url) {
+        var client = new WebSocketClient();
+        client.on('connectFailed', function(error) {
+            console.log('Connect Error: ' + error.toString());
+        });
+
+        client.on('connect', function(connection) {
+            console.log('WebSocket client connected');
+            connection.on('error', function(error) {
+                console.log("Connection Error: " + error.toString());
+            });
+            connection.on('close', function() {
+                console.log('Connection Closed');
+            });
+            connection.on('message', function(message) {
+                if (message.type === 'utf8') {
+                    console.log('Received: ', message.utf8Data);
+                    var obj = JSON.parse(message.utf8Data);
+                    if (obj.r1 && obj.r1.e && obj.r1.e[0].content === "``help") {
+                        console.log('DUDE!');
+                        sendMessage('I\'M ALIVE!');
+                    }
+                }
+            });
+        });
+        console.log(j);
+        client.connect(url + '?l=9999999', null, 'http://chat.stackoverflow.com', {'Set-Cookie': j});
+        // client.connect('ws://localhost:8080');
+    });
 };
 
 exports.login = login;
 exports.sendMessage = sendMessage;
+exports.connect = connect;

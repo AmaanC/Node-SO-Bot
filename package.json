@@ -1,10 +1,25 @@
 {
-  "name": "Caprica",
-  "description": "",
+  "name": "Node SO Chat Bot",
   "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AmaanC/Node-SO-Bot"
+  },
+  "author": "Amaan Cheval",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/AmaanC/Node-SO-Bot/issues"
+  },
+  "homepage": "https://github.com/AmaanC/Node-SO-Bot",
   "private": true,
   "dependencies": {
     "request": "2.x",
-    "jsdom": "0.10.x"
+    "jsdom": "0.10.x",
+    "websocket": "1.0.x"
   }
 }
