@@ -1,4 +1,3 @@
-(function () {
 "use strict";
 
 //ths fnctn tks sntnc nd trns t t awsm
@@ -20,7 +19,7 @@ var mk_awsm=function(sntnc){
     }).join(' ')
 }
 
-bot.addCommand({
+module.exports = {
 	name : 'awsm',
 	fun : mk_awsm,
 
@@ -28,6 +27,4 @@ bot.addCommand({
 		del : 'NONE'
 	},
 	description : 'tks a sntnc and trns i awsm'
-});
-
-}());
+};

@@ -1,10 +1,10 @@
-"use strict";
+'use strict';
 
 var commands = {
 	help : function ( args ) {
 		if ( args && args.length ) {
 
-			var cmd = bot.getCommand( args.toLowerCase() );
+			var cmd = this.getCommand( args.toLowerCase() );
 			if ( cmd.error ) {
 				return cmd.error;
 			}
@@ -20,20 +20,20 @@ var commands = {
 	},
 
 	listen : function ( msg ) {
-		var ret = bot.callListeners( msg );
+		var ret = this.callListeners( msg );
 		if ( !ret ) {
-			return bot.giveUpMessage();
+			return this.giveUpMessage();
 		}
 	},
 
 	eval : function ( msg, cb ) {
 		cb = cb || msg.directreply.bind( msg );
 
-		return bot.eval( msg, cb );
+		return this.eval( msg, cb );
 	},
 	coffee : function ( msg, cb ) {
 		//yes, this is a bit yucky
-		var arg = bot.Message( 'c> ' + msg, msg.get() );
+		var arg = this.Message( 'c> ' + msg, msg.get() );
 		return commands.eval( arg, cb );
 	},
 
@@ -43,7 +43,7 @@ var commands = {
 
 	forget : function ( args ) {
 		var name = args.toLowerCase(),
-			cmd = bot.getCommand( name );
+			cmd = this.getCommand( name );
 
 		if ( cmd.error ) {
 			return cmd.error;
@@ -64,11 +64,11 @@ var commands = {
 			return commandFormat( args.content );
 		}
 
-		var info = bot.info;
+		var info = this.info;
 		return timeFormat() + ', ' + statsFormat();
 
 		function commandFormat ( commandName ) {
-			var cmd = bot.getCommand( commandName );
+			var cmd = this.getCommand( commandName );
 
 			if ( cmd.error ) {
 				return cmd.error;
@@ -147,7 +147,7 @@ var partition = function ( list, maxSize ) {
 };
 
 return function ( args ) {
-	var commands = Object.keys( bot.commands ),
+	var commands = Object.keys( this.commands ),
 		user_name = args.get( 'user_name' ),
 		// 500 is the max, -2 for @ and space.
 		maxSize = 498 - user_name.length,
@@ -162,7 +162,7 @@ commands.eval.async = commands.coffee.async = true;
 
 commands.tell = function ( args ) {
 	var parts = args.split( ' ' );
-	bot.log( args.valueOf(), parts, '/tell input' );
+	this.log( args.valueOf(), parts, '/tell input' );
 
 	var replyTo = parts[ 0 ],
 		cmdName = parts[ 1 ],
@@ -173,7 +173,7 @@ commands.tell = function ( args ) {
 	}
 
 	cmdName = cmdName.toLowerCase();
-	cmd = bot.getCommand( cmdName );
+	cmd = this.getCommand( cmdName );
 	if ( cmd.error ) {
 		return cmd.error +
 			' (note that /tell works on commands, it\'s not an echo.)';
@@ -204,7 +204,7 @@ commands.tell = function ( args ) {
 	}
 
 	var msgObj = Object.merge( args.get(), extended ),
-		cmdArgs = bot.Message( parts.slice(2).join(' '), msgObj );
+		cmdArgs = this.Message( parts.slice(2).join(' '), msgObj );
 
 	//this is an ugly, but functional thing, much like your high-school prom
 	// date to make sure a command's output goes through us, we simply override
@@ -214,7 +214,7 @@ commands.tell = function ( args ) {
 
 	cmdArgs.reply = cmdArgs.directreply = cmdArgs.send = callFinished;
 
-	bot.log( cmdArgs, '/tell calling ' + cmdName );
+	this.log( cmdArgs, '/tell calling ' + cmdName );
 
 	//if the command is async, it'll accept a callback
 	if ( cmd.async ) {
@@ -238,4 +238,39 @@ commands.tell = function ( args ) {
 	}
 };
 
-module.exports = commands;
+var details = {};
+
+details.descriptions = {
+	eval : 'Forwards message to javascript code-eval',
+	coffee : 'Forwards message to coffeescript code-eval',
+	forget : 'Forgets a given command. `/forget cmdName`',
+	help : 'Fetches documentation for given command, or general help article.' +
+		' `/help [cmdName]`',
+	info : 'Grabs some stats on my current instance or a command.' +
+		' `/info [cmdName]`',
+	listcommands : 'Lists commands. `/listcommands`',
+	listen : 'Forwards the message to my ears (as if called without the /)',
+	refresh : 'Reloads the browser window I live in',
+	tell : 'Redirect command result to user/message.' +
+		' /tell `msg_id|usr_name cmdName [cmdArgs]`'
+};
+
+//only allow owners to use certain commands
+details.privilegedCommands = {
+	die : true, live  : true,
+	ban : true, unban : true,
+	refresh : true
+};
+//voting-based commands for unpriviledged users
+details.communal = {
+	die : true, ban : true
+};
+//commands which can't be used with /tell
+details.unTellable = {
+	tell : true, forget : true
+};
+
+module.exports = {
+	details: details,
+	commands: commands
+};
