@@ -581,12 +581,13 @@ require('../bot-plugins/norris')(bot, IO);
 require('../bot-plugins/xkcd')(bot, IO);
 require('../bot-plugins/google')(bot, IO);
 require('../bot-plugins/history')(bot, IO);
+require('../bot-plugins/hangman')(bot, IO);
 //require('../bot-plugins/stat')(bot, IO);
 require('../bot-plugins/converter')(bot, IO);
-require('../bot-plugins/define')(bot, IO);
+//require('../bot-plugins/define')(bot, IO);
 require('../bot-plugins/mdn')(bot, IO);
 require('../bot-plugins/substitution')(bot, IO);/*
-require('../bot-plugins/unonebox')(bot, IO);/*
+require('../bot-plugins/unonebox')(bot, IO);*/
 require('../bot-plugins/undo')(bot, IO);/*
 require('../bot-plugins/roomPermissions')(bot, IO);*/
 require('../bot-plugins/welcome')(bot, IO);/*

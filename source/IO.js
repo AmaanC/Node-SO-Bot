@@ -292,7 +292,21 @@ console.log(params);
 		console.log('IO response');
 		console.log(err, res);
 		if (err) { error(err); }
-		cb(JSON.parse(res));
+		var result;
+
+		// Check if it's JSONP
+		var first = res.substring(0,1); 
+		if (first === 'c') {
+			res = res.replace('callback(', '').replace(');', '');
+			return cb(eval('(' + res + ')'));
+		}
+
+		try {
+			result = JSON.parse(res);
+			return cb(result);
+		} catch (e) {
+			error(e);
+		}
 	});
 };
 

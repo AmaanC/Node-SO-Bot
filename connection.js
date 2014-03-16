@@ -8,6 +8,8 @@ var WebSocketClient = require('websocket').client;
 var j = req.jar();
 var request = req.defaults({jar: j});
 
+var roomId = 1;
+
 // The login process works in two stages. First, you go to the login page. From the login page, you take the fkey,
 // and then you send a POST request to login, using your details and the fkey
 
@@ -63,7 +65,7 @@ var sendMessage = bot.adapter.out.sendToRoom = function (text) {
     }
 
     request.post({
-        url: 'http://chat.stackoverflow.com/chats/1/messages/new',
+        url: 'http://chat.stackoverflow.com/chats/' + roomId + '/messages/new',
         form: {
             text: text,
             fkey: chatFkey
@@ -116,7 +118,7 @@ var getSocketURL = function (callback) {
     request.post({
         url: 'http://chat.stackoverflow.com/ws-auth',
         form: {
-            roomid: 1,
+            roomid: roomId,
             fkey: chatFkey
         }
     }, function (error, response, body) {
@@ -126,8 +128,8 @@ var getSocketURL = function (callback) {
 
 var connect = function () {
     getSocketURL(function (url) {
-        //two guys walk into a bar. the bartender asks them "is this some kind of joke?"
-        bot.adapter.init(chatFkey, 1);// HARDCODE FIXME
+        //two guys walk into a bar^H^H^H SO chat room. the bartender asks them "is this some kind of joke?"
+        bot.adapter.init(chatFkey, roomId);
         var client = new WebSocketClient();
         client.on('connectFailed', function(error) {
             console.log('Connect Error: ' + error.toString());
@@ -145,15 +147,15 @@ var connect = function () {
                 if (message.type === 'utf8') {
                     console.log('Received: ', message.utf8Data);
                     var obj = JSON.parse(message.utf8Data);
-                    if (obj.r1 && obj.r1.e) {
-                        console.log(obj.r1);
-                        bot.parseMessage(obj.r1.e[0]);
+                    if (obj['r' + roomId] && obj['r' + roomId].e) {
+                        console.log(obj['r' + roomId]);
+                        bot.parseMessage(obj['r' + roomId].e[0]);
                         console.log('DUDE!');
                     }
                 }
             });
         });
-        console.log(j);
+        //console.log(j);
         client.connect(url + '?l=9999999', null, 'http://chat.stackoverflow.com', {'Set-Cookie': j});
         // client.connect('ws://localhost:8080');
     });
