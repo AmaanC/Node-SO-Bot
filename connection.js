@@ -136,6 +136,7 @@ var handleMessageObject = function ( msg ) {
 	// console.log('Handling type', et);
 	if ( et === 1 || et === 2 ) {
 		bot.parseMessage( msg );
+		IO.fire( 'input', msg );
 	}
 };
 
@@ -180,5 +181,3 @@ exports.login = login;
 exports.sendMessage = sendMessage;
 exports.connect = connect;
 exports.cookieJar = j;
-
-setTimeout(IO.test, 5000);

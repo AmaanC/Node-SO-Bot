@@ -573,6 +573,7 @@ require('./parseCommandArgs')(bot);
 // Yes, we are working on a better way to do this
 require('../bot-plugins/awsm')(bot, IO);
 require('../bot-plugins/meme')(bot, IO);
+require('../bot-plugins/STOP')(bot, IO);
 require('../bot-plugins/weather')(bot, IO);
 require('../bot-plugins/urban')(bot, IO);
 require('../bot-plugins/wiki')(bot, IO);
