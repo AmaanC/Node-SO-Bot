@@ -42,6 +42,7 @@ var IO = {
 		var args = Array.prototype.slice.call( arguments, 1 ),
 			that = this;
 		this.events[ name ].forEach( fireEvent );
+		console.log('Firing event', name);
 
 		function fireEvent( evt ) {
 			var call = evt.fun.apply( evt.thisArg, evt.args.concat(args) );
@@ -147,7 +148,7 @@ return function ( html ) {
 }());
 
 IO.decodehtmlEntities = (function () {
-var entities = require('../bot-plugins/data/htmlEntities');
+var entities = require('../../bot-plugins/data/htmlEntities');
 /*
   &       -all entities start with &
   (

@@ -2,6 +2,7 @@ var req = require('request');
 var jsdom = require('jsdom');
 
 var bot = require('./source/bot');
+require('./source/util');
 
 var WebSocketClient = require('websocket').client;
 
@@ -126,6 +127,14 @@ var getSocketURL = function (callback) {
 	});
 };
 
+var handleMessageObject = function ( msg ) {
+	var et = msg.event_type;
+	console.log('Handling type', et);
+	if ( et === 1 || et === 2 ) {
+		bot.parseMessage( msg );
+	}
+};
+
 var connect = function () {
 	getSocketURL(function (url) {
 		// two guys walk into a bar^H^H^H SO chat room. the bartender asks them "is this some kind of joke?"
@@ -148,9 +157,9 @@ var connect = function () {
 					console.log('Received: ', message.utf8Data);
 					var obj = JSON.parse(message.utf8Data);
 					if (obj['r' + roomId] && obj['r' + roomId].e) {
-						console.log(obj['r' + roomId]);
-						bot.parseMessage(obj['r' + roomId].e[0]);
-						console.log('DUDE!');
+						// bot.parseMessage(obj['r' + roomId].e[0]);
+						var resp = obj['r' + roomId].e;
+						resp.forEach(handleMessageObject);
 					}
 				}
 			});
