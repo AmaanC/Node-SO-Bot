@@ -566,6 +566,31 @@ Object.iterate( commands.commands, function ( cmdName, fun ) {
 	bot.addCommand( cmd );
 });
 
-bot.addCommand(require('./plugins/awsm'));
+bot.adapter = require('./adapter');
+
+require('./parseCommandArgs')(bot);
+
+// Yes, we are working on a better way to do this
+require('../bot-plugins/awsm')(bot, IO);
+require('../bot-plugins/weather')(bot, IO);
+require('../bot-plugins/urban')(bot, IO);
+require('../bot-plugins/wiki')(bot, IO);
+require('../bot-plugins/youtube')(bot, IO);
+require('../bot-plugins/github')(bot, IO);
+require('../bot-plugins/norris')(bot, IO);
+require('../bot-plugins/xkcd')(bot, IO);
+require('../bot-plugins/google')(bot, IO);
+require('../bot-plugins/history')(bot, IO);
+//require('../bot-plugins/stat')(bot, IO);
+require('../bot-plugins/converter')(bot, IO);
+require('../bot-plugins/define')(bot, IO);
+require('../bot-plugins/mdn')(bot, IO);
+require('../bot-plugins/substitution')(bot, IO);/*
+require('../bot-plugins/unonebox')(bot, IO);/*
+require('../bot-plugins/undo')(bot, IO);/*
+require('../bot-plugins/roomPermissions')(bot, IO);*/
+require('../bot-plugins/welcome')(bot, IO);/*
+*/
+
 
 module.exports = bot;

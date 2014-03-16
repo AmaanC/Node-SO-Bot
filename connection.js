@@ -2,7 +2,6 @@ var req = require('request');
 var jsdom = require('jsdom');
 
 var bot = require('./source/bot');
-bot.adapter = require('./source/adapter');
 
 var WebSocketClient = require('websocket').client;
 

@@ -1,3 +1,5 @@
+var request = require('request');
+
 var IO = {
 	//event handling
 	events : {},
@@ -145,9 +147,7 @@ return function ( html ) {
 }());
 
 IO.decodehtmlEntities = (function () {
-var entities; //will be filled in the following line
-//#build static/htmlEntities.js
-
+var entities = require('../bot-plugins/data/htmlEntities');
 /*
   &       -all entities start with &
   (
@@ -267,41 +267,33 @@ IO.injectScript = function ( url ) {
 	return script;
 };
 
-IO.xhr = function ( params ) {
+IO.request = function ( params ) {
+	var cb = params.complete || function() {},
+			error = params.error || function() {};
+	params.headers = params.headers || {};
 	//merge in the defaults
-	params = Object.merge({
-		method   : 'GET',
-		headers  : {},
-		complete : function (){}
-	}, params );
-
 	params.headers = Object.merge({
-		'Content-Type' : 'application/x-www-form-urlencoded'
+		'Content-Type' : 'application/x-www-form-urlencoded',
+		'User-Agent': 'request'
 	}, params.headers );
 
 	//if the data is an object, and not a fakey String object, dress it up
 	if ( typeof params.data === 'object' && !params.data.charAt ) {
-		params.data = IO.urlstringify( params.data );
+		if (params.method && params.method !== 'GET') {
+			// Not sure if this is right way to do it.
+			params.body = IO.urlstringify( params.data );
+		} else {
+			params.url += '?' + IO.urlstringify( params.data )
+		}
 	}
 
-	var xhr = new XMLHttpRequest();
-	xhr.open( params.method, params.url );
-
-	if ( params.document ) {
-		xhr.responseType = 'document';
-	}
-
-	xhr.addEventListener( 'load', function () {
-		params.complete.call(
-			params.thisArg, xhr.response, xhr
-		);
+console.log(params);
+	request(params, function(err, req, res) {
+		console.log('IO response');
+		console.log(err, res);
+		if (err) { error(err); }
+		cb(JSON.parse(res));
 	});
-
-	Object.iterate( params.headers, xhr.setRequestHeader.bind(xhr) );
-
-	xhr.send( params.data );
-
-	return xhr;
 };
 
 IO.jsonp = function ( opts ) {
@@ -342,15 +334,14 @@ IO.jsonp = function ( opts ) {
 };
 
 //generic, pre-made call to be used inside commands
-IO.jsonp.google = function ( query, cb ) {
-	IO.jsonp({
+IO.google = function ( query, cb ) {
+	IO.request({
 		url : 'http://ajax.googleapis.com/ajax/services/search/web',
-		jsonpName : 'callback',
 		data : {
 			v : '1.0',
 			q : query
 		},
-		fun : cb
+		complete : cb
 	});
 };
 

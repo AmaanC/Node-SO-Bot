@@ -1,4 +1,4 @@
-(function () {
+module.exports = function (bot) {
 "use strict";
 
 var target;
@@ -203,4 +203,4 @@ return function () {
 };
 }());
 
-}());
+};
