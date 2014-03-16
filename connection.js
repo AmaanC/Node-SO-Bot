@@ -2,6 +2,7 @@ var req = require('request');
 var jsdom = require('jsdom');
 
 var bot = require('./source/bot');
+var IO = require('./source/IO');
 require('./source/util');
 
 var WebSocketClient = require('websocket').client;
@@ -52,6 +53,7 @@ var loginChat = function (callback) {
 	}, function(error, response, body) {
 		jsdom.env(body, function (errors, window) {
 			chatFkey = window.document.querySelector('input[name="fkey"]').value;
+			bot.fkey = chatFkey;
 
 			callback();
 		});
@@ -72,7 +74,9 @@ var sendMessage = bot.adapter.out.sendToRoom = function (text) {
 			fkey: chatFkey
 		}
 	}, function(error, response, body) {
-		console.log('Message sent', body);
+		console.log('Message sent', text);
+		console.log(body);
+		IO.fire( 'sendoutput', body, text, roomId );
 	});
 };
 
@@ -129,7 +133,7 @@ var getSocketURL = function (callback) {
 
 var handleMessageObject = function ( msg ) {
 	var et = msg.event_type;
-	console.log('Handling type', et);
+	// console.log('Handling type', et);
 	if ( et === 1 || et === 2 ) {
 		bot.parseMessage( msg );
 	}
@@ -137,7 +141,7 @@ var handleMessageObject = function ( msg ) {
 
 var connect = function () {
 	getSocketURL(function (url) {
-		// two guys walk into a bar^H^H^H SO chat room. the bartender asks them "is this some kind of joke?"
+		// two guys walk into a bar SO chat room. the bartender asks them "is this some kind of joke?"
 		bot.adapter.init(chatFkey, roomId);
 		var client = new WebSocketClient();
 		client.on('connectFailed', function(error) {
@@ -175,3 +179,6 @@ var connect = function () {
 exports.login = login;
 exports.sendMessage = sendMessage;
 exports.connect = connect;
+exports.cookieJar = j;
+
+setTimeout(IO.test, 5000);

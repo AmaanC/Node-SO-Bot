@@ -1,4 +1,5 @@
 var request = require('request');
+var connection = require('../connection');
 
 var IO = {
 	//event handling
@@ -268,9 +269,11 @@ IO.injectScript = function ( url ) {
 	return script;
 };
 
+
 IO.request = function ( params ) {
 	var cb = params.complete || function() {},
 			error = params.error || function() {};
+	params.jar = connection.cookieJar;
 	params.headers = params.headers || {};
 	//merge in the defaults
 	params.headers = Object.merge({
@@ -288,21 +291,21 @@ IO.request = function ( params ) {
 		}
 	}
 
-	request(params, function(err, req, res) {
+	request(params, function(err, response, body) {
 		console.log('IO response');
-		console.log(err, res);
+		console.log(err, body);
 		if (err) { error(err); }
 		var result;
 
 		// Check if it's JSONP
-		var first = res.substring(0,1); 
+		var first = body.substring(0,1); 
 		if (first === 'c') {
-			res = res.replace('callback(', '').replace(');', '');
-			return cb(eval('(' + res + ')'));
+			body = body.replace('callback(', '').replace(');', '');
+			return cb(eval('(' + body + ')'));
 		}
 
 		try {
-			result = JSON.parse(res);
+			result = JSON.parse(body);
 			return cb(result);
 		} catch (e) {
 			error(e);

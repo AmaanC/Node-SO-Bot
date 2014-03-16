@@ -252,7 +252,7 @@ var polling = adapter.in = {
 
 		function finish ( resp ) {
 			resp = JSON.parse( resp );
-			bot.log( resp );
+			// bot.log( resp );
 
 			that.openSocket( resp.url, providedRoomid );
 		}
@@ -276,7 +276,7 @@ var polling = adapter.in = {
 
 		function finish ( resp ) {
 			resp = JSON.parse( resp );
-			bot.log( resp );
+			// bot.log( resp );
 
 			that.times[ 'r' + roomid ] = resp.time;
 			that.firstPoll = false;

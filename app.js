@@ -1,6 +1,5 @@
-var connection = require('./connection.js');
-var details = require('./loginDetails.js');
-
+var connection = require('./connection');
+var details = require('./loginDetails');
 
 connection.login(details.email, details.password, function (){
 	connection.connect();
