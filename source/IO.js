@@ -286,6 +286,7 @@ IO.request = function ( params ) {
 		params.headers = Object.merge({
 			'accept-encoding': 'gzip'
 		}, params.headers);
+		params.encoding = null;
 	}
 
 	//if the data is an object, and not a fakey String object, dress it up
@@ -299,29 +300,19 @@ IO.request = function ( params ) {
 	}
 
 	if ( params.gzipped ) {
-		var req = request( params );
-		req.on('response', function (res) {
-			var chunks = [];
-			res.on('data', function (chunk) {
-				chunks.push( chunk );
-			});
-
-			res.on('end', function () {
-				var buffer = Buffer.concat(chunks);
-				zlib.gunzip(buffer, function (err, unzipped) {
-					var result = unzipped.toString();
-					try {
-						result = JSON.parse(result);
-						cb(result);
-					}
-					catch (e) {
-						error(e);
-					}
-				});
+		var req = request(params, function (err, res, buffer) {
+			if (err) { error(err); }
+			zlib.gunzip(buffer, function (err, unzipped) {
+				var result = unzipped.toString();
+				try {
+					result = JSON.parse(result);
+					cb(result);
+				}
+				catch (e) {
+					error(e);
+				}
 			});
 		});
-
-		req.on('error', error);
 	}
 	else {
 		request(params, function(err, response, body) {

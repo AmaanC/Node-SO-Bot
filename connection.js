@@ -8,7 +8,7 @@ require('./source/util');
 var WebSocketClient = require('websocket').client;
 
 var cookieJar = req.jar();
-var request = req.defaults({jar: j});
+var request = req.defaults({jar: cookieJar});
 
 var roomId = 1;
 
