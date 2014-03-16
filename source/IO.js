@@ -287,7 +287,6 @@ IO.request = function ( params ) {
 		}
 	}
 
-console.log(params);
 	request(params, function(err, req, res) {
 		console.log('IO response');
 		console.log(err, res);
