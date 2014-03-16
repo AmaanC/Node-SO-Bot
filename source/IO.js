@@ -1,4 +1,5 @@
 var request = require('request');
+var zlib = require('zlib');
 var connection = require('../connection');
 
 var IO = {
@@ -281,6 +282,12 @@ IO.request = function ( params ) {
 		'User-Agent': 'request'
 	}, params.headers );
 
+	if ( params.gzipped ) {
+		params.headers = Object.merge({
+			'accept-encoding': 'gzip'
+		}, params.headers);
+	}
+
 	//if the data is an object, and not a fakey String object, dress it up
 	if ( typeof params.data === 'object' && !params.data.charAt ) {
 		if (params.method && params.method !== 'GET') {
@@ -291,26 +298,53 @@ IO.request = function ( params ) {
 		}
 	}
 
-	request(params, function(err, response, body) {
-		console.log('IO response');
-		// console.log(body);
-		if (err) { error(err); }
-		var result;
+	if ( params.gzipped ) {
+		var req = request( params );
+		req.on('response', function (res) {
+			var chunks = [];
+			res.on('data', function (chunk) {
+				chunks.push( chunk );
+			});
 
-		// Check if it's JSONP
-		var first = body.substring(0,1); 
-		if (first === 'c') {
-			body = body.replace('callback(', '').replace(');', '');
-			return cb(eval('(' + body + ')'));
-		}
+			res.on('end', function () {
+				var buffer = Buffer.concat(chunks);
+				zlib.gunzip(buffer, function (err, unzipped) {
+					var result = unzipped.toString();
+					try {
+						result = JSON.parse(result);
+						cb(result);
+					}
+					catch (e) {
+						error(e);
+					}
+				});
+			});
+		});
 
-		try {
-			result = JSON.parse(body);
-			return cb(result);
-		} catch (e) {
-			error(e);
-		}
-	});
+		req.on('error', error);
+	}
+	else {
+		request(params, function(err, response, body) {
+			console.log('IO response');
+			console.log(body);
+			if (err) { error(err); }
+			var result;
+
+			// Check if it's JSONP
+			var first = body.substring(0,1); 
+			if (first === 'c') {
+				body = body.replace('callback(', '').replace(');', '');
+				return cb(eval('(' + body + ')'));
+			}
+
+			try {
+				result = JSON.parse(body);
+				return cb(result);
+			} catch (e) {
+				error(e);
+			}
+		});
+	}
 };
 
 IO.jsonp = function ( opts ) {

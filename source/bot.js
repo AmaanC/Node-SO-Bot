@@ -585,7 +585,7 @@ require('../bot-plugins/xkcd')(bot, IO);
 require('../bot-plugins/google')(bot, IO);
 require('../bot-plugins/history')(bot, IO);
 require('../bot-plugins/hangman')(bot, IO);
-//require('../bot-plugins/stat')(bot, IO);
+require('../bot-plugins/stat')(bot, IO);
 require('../bot-plugins/converter')(bot, IO);
 //require('../bot-plugins/define')(bot, IO);
 require('../bot-plugins/mdn')(bot, IO);

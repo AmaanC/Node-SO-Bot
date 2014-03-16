@@ -173,6 +173,17 @@ var connect = function () {
 		// The parameters for connect: requestURL, protocol, origin, headers
 		// This wasn't documented on their repo, but it's evident in the WebSocketClient.js file in the module
 		client.connect(url + '?l=9999999', null, 'http://chat.stackoverflow.com', {'Set-Cookie': j});
+
+		bot.parseMessage({ event_type: 1,
+			  time_stamp: 1394971758,
+			  content: '``stat',
+			  id: 30788117,
+			  user_id: 401137,
+			  user_name: 'Some Guy',
+			  room_id: 1,
+			  room_name: 'Sandbox',
+			  message_id: 15312928
+		});
 	});
 };
 
