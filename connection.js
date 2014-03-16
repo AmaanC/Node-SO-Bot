@@ -7,7 +7,7 @@ require('./source/util');
 
 var WebSocketClient = require('websocket').client;
 
-var j = req.jar();
+var cookieJar = req.jar();
 var request = req.defaults({jar: j});
 
 var roomId = 1;
@@ -172,11 +172,11 @@ var connect = function () {
 		// Stack needs the ?l=SomeLargeNumber for all of its WebSocket connections for some reason
 		// The parameters for connect: requestURL, protocol, origin, headers
 		// This wasn't documented on their repo, but it's evident in the WebSocketClient.js file in the module
-		client.connect(url + '?l=9999999', null, 'http://chat.stackoverflow.com', {'Set-Cookie': j});
+		client.connect(url + '?l=9999999', null, 'http://chat.stackoverflow.com', {'Set-Cookie': cookieJar});
 	});
 };
 
 exports.login = login;
 exports.sendMessage = sendMessage;
 exports.connect = connect;
-exports.cookieJar = j;
+exports.cookieJar = cookieJar;
