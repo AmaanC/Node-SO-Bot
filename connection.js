@@ -135,7 +135,6 @@ var handleMessageObject = function ( msg ) {
 	var et = msg.event_type;
 	// console.log('Handling type', et);
 	if ( et === 1 || et === 2 ) {
-		bot.parseMessage( msg );
 		IO.fire( 'input', msg );
 	}
 };
