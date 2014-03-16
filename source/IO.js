@@ -293,7 +293,7 @@ IO.request = function ( params ) {
 
 	request(params, function(err, response, body) {
 		console.log('IO response');
-		console.log(err, body);
+		// console.log(body);
 		if (err) { error(err); }
 		var result;
 
