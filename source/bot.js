@@ -44,13 +44,14 @@ var bot = {
 
 		try {
 			//it wants to execute some code
+			/*
 			if ( /^c?>/.test(msg) ) {
 				this.eval( msg.toString(), msg.directreply.bind(msg) );
-			}
+			}*/
 			//or maybe some other action.
-			else {
+			//else {
 				this.invokeAction( msg );
-			}
+			//}
 		}
 		catch ( e ) {
 			var err = 'Could not process input. Error: ' + e.message;
@@ -594,6 +595,13 @@ require('../bot-plugins/undo')(bot, IO);
 // require('../bot-plugins/unonebox')(bot, IO);
 // require('../bot-plugins/roomPermissions')(bot, IO);
 // require('../bot-plugins/welcome')(bot, IO);
+
+require('./eval')(bot);
+/*
+bot.eval('!!> console.log("yarp")', function(err, data) {
+	console.log(err, data);
+	process.exit();
+});*/
 
 
 module.exports = bot;

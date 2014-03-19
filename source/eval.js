@@ -1,102 +1,283 @@
+var cluster = require('cluster'),
+    coffee = require('coffee-script');
+
 //execute arbitrary js code in a relatively safe environment
-bot.eval = (function () {
-window.URL = window.URL || window.webkitURL || window.mozURL || null;
+module.exports = function (bot) {
+  console.log('loading bot');
+function snipAndCodify ( str ) {
+  var ret;
 
-//translation tool: http://tinkerbin.heroku.com/84dPpGFr
-var worker_code = atob( 'dmFyIGdsb2JhbCA9IHRoaXM7CgovKm1vc3QgZXh0cmEgZnVuY3Rpb25zIGNvdWxkIGJlIHBvc3NpYmx5IHVuc2FmZSovCnZhciB3aGl0ZXkgPSB7CgknQXJyYXknICAgICAgICAgICAgICA6IDEsCgknQm9vbGVhbicgICAgICAgICAgICA6IDEsCgknY29uc29sZScgICAgICAgICAgICA6IDEsCgknRGF0ZScgICAgICAgICAgICAgICA6IDEsCgknRXJyb3InICAgICAgICAgICAgICA6IDEsCgknRXZhbEVycm9yJyAgICAgICAgICA6IDEsCgknZXhlYycgICAgICAgICAgICAgICA6IDEsCgknRnVuY3Rpb24nICAgICAgICAgICA6IDEsCgknSW5maW5pdHknICAgICAgICAgICA6IDEsCgknSlNPTicgICAgICAgICAgICAgICA6IDEsCgknTWF0aCcgICAgICAgICAgICAgICA6IDEsCgknTmFOJyAgICAgICAgICAgICAgICA6IDEsCgknTnVtYmVyJyAgICAgICAgICAgICA6IDEsCgknT2JqZWN0JyAgICAgICAgICAgICA6IDEsCgknUmFuZ2VFcnJvcicgICAgICAgICA6IDEsCgknUmVmZXJlbmNlRXJyb3InICAgICA6IDEsCgknUmVnRXhwJyAgICAgICAgICAgICA6IDEsCgknU3RyaW5nJyAgICAgICAgICAgICA6IDEsCgknU3ludGF4RXJyb3InICAgICAgICA6IDEsCgknVHlwZUVycm9yJyAgICAgICAgICA6IDEsCgknVVJJRXJyb3InICAgICAgICAgICA6IDEsCgknYXRvYicgICAgICAgICAgICAgICA6IDEsCgknYnRvYScgICAgICAgICAgICAgICA6IDEsCgknZGVjb2RlVVJJJyAgICAgICAgICA6IDEsCgknZGVjb2RlVVJJQ29tcG9uZW50JyA6IDEsCgknZW5jb2RlVVJJJyAgICAgICAgICA6IDEsCgknZW5jb2RlVVJJQ29tcG9uZW50JyA6IDEsCgknZXZhbCcgICAgICAgICAgICAgICA6IDEsCgknZ2xvYmFsJyAgICAgICAgICAgICA6IDEsCgknaXNGaW5pdGUnICAgICAgICAgICA6IDEsCgknaXNOYU4nICAgICAgICAgICAgICA6IDEsCgknb25tZXNzYWdlJyAgICAgICAgICA6IDEsCgkncGFyc2VGbG9hdCcgICAgICAgICA6IDEsCgkncGFyc2VJbnQnICAgICAgICAgICA6IDEsCgkncG9zdE1lc3NhZ2UnICAgICAgICA6IDEsCgknc2VsZicgICAgICAgICAgICAgICA6IDEsCgkndW5kZWZpbmVkJyAgICAgICAgICA6IDEsCgknd2hpdGV5JyAgICAgICAgICAgICA6IDEsCgoJLyogdHlwZWQgYXJyYXlzIGFuZCBzaGl0ICovCgknQXJyYXlCdWZmZXInICAgICAgIDogMSwKCSdCbG9iJyAgICAgICAgICAgICAgOiAxLAoJJ0Zsb2F0MzJBcnJheScgICAgICA6IDEsCgknRmxvYXQ2NEFycmF5JyAgICAgIDogMSwKCSdJbnQ4QXJyYXknICAgICAgICAgOiAxLAoJJ0ludDE2QXJyYXknICAgICAgICA6IDEsCgknSW50MzJBcnJheScgICAgICAgIDogMSwKCSdVaW50OEFycmF5JyAgICAgICAgOiAxLAoJJ1VpbnQxNkFycmF5JyAgICAgICA6IDEsCgknVWludDMyQXJyYXknICAgICAgIDogMSwKCSdVaW50OENsYW1wZWRBcnJheScgOiAxLAoKCS8qCgl0aGVzZSBwcm9wZXJ0aWVzIGFsbG93IEZGIHRvIGZ1bmN0aW9uLiB3aXRob3V0IHRoZW0sIGEgZnVja2Zlc3Qgb2YKCWluZXhwbGljYWJsZSBlcnJvcnMgZW51c2VzLiB0b29rIG1lIGFib3V0IDQgaG91cnMgdG8gdHJhY2sgdGhlc2UgZnVja2VycwoJZG93bi4KCWZ1Y2sgaGVsbCBpdCBpc24ndCBmdXR1cmUtcHJvb2YsIGJ1dCB0aGUgZXJyb3JzIHRocm93biBhcmUgdW5jYXRjaGFibGUKCWFuZCB1bnRyYWNhYmxlLiBzbyBhIGhlYWRzLXVwLiBlbmpveSwgZnV0dXJlLW1lIQoJKi8KCSdET01FeGNlcHRpb24nIDogMSwKCSdFdmVudCcgICAgICAgIDogMSwKCSdNZXNzYWdlRXZlbnQnIDogMSwKCSdXb3JrZXJNZXNzYWdlRXZlbnQnOiAxCn07CgpbIGdsb2JhbCwgT2JqZWN0LmdldFByb3RvdHlwZU9mKGdsb2JhbCkgXS5mb3JFYWNoKGZ1bmN0aW9uICggb2JqICkgewoJT2JqZWN0LmdldE93blByb3BlcnR5TmFtZXMoIG9iaiApLmZvckVhY2goZnVuY3Rpb24oIHByb3AgKSB7CgkJaWYoIHdoaXRleS5oYXNPd25Qcm9wZXJ0eShwcm9wKSApIHsKICAgICAgICAgICAgcmV0dXJuOwoJCX0KCiAgICAgICAgdHJ5IHsKICAgICAgICAgICAgT2JqZWN0LmRlZmluZVByb3BlcnR5KCBvYmosIHByb3AsIHsKICAgICAgICAgICAgICAgIGdldCA6IGZ1bmN0aW9uICgpIHsKICAgICAgICAgICAgICAgICAgICAvKiBURUUgSEVFICovCiAgICAgICAgICAgICAgICAgICAgdGhyb3cgbmV3IFJlZmVyZW5jZUVycm9yKCBwcm9wICsgJyBpcyBub3QgZGVmaW5lZCcgKTsKICAgICAgICAgICAgICAgIH0sCiAgICAgICAgICAgICAgICBjb25maWd1cmFibGUgOiBmYWxzZSwKICAgICAgICAgICAgICAgIGVudW1lcmFibGUgOiBmYWxzZQogICAgICAgICAgICB9KTsKICAgICAgICB9CiAgICAgICAgY2F0Y2ggKCBlICkgewogICAgICAgICAgICBkZWxldGUgb2JqWyBwcm9wIF07CgogICAgICAgICAgICBpZiAoIG9ialsgcHJvcCBdICE9PSB1bmRlZmluZWQgKSB7CiAgICAgICAgICAgICAgICBvYmpbIHByb3AgXSA9IG51bGw7CiAgICAgICAgICAgIH0KICAgICAgICB9Cgl9KTsKfSk7CgpPYmplY3QuZGVmaW5lUHJvcGVydHkoIEFycmF5LnByb3RvdHlwZSwgJ2pvaW4nLCB7Cgl3cml0YWJsZTogZmFsc2UsCgljb25maWd1cmFibGU6IGZhbHNlLAoJZW51bXJhYmxlOiBmYWxzZSwKCgl2YWx1ZTogKGZ1bmN0aW9uICggb2xkICkgewoJCXJldHVybiBmdW5jdGlvbiAoIGFyZyApIHsKCQkJaWYgKCB0aGlzLmxlbmd0aCA+IDUwMCB8fCAoYXJnICYmIGFyZy5sZW5ndGggPiA1MDApICkgewoJCQkJdGhyb3cgJ0V4Y2VwdGlvbjogdG9vIG1hbnkgaXRlbXMnOwoJCQl9CgoJCQlyZXR1cm4gb2xkLmFwcGx5KCB0aGlzLCBhcmd1bWVudHMgKTsKCQl9OwoJfSggQXJyYXkucHJvdG90eXBlLmpvaW4gKSkKfSk7CgovKiB3ZSBkZWZpbmUgaXQgb3V0c2lkZSBzbyBpdCdsbCBub3QgYmUgaW4gc3RyaWN0IG1vZGUgKi8KdmFyIGV4ZWMgPSBmdW5jdGlvbiAoIGNvZGUgKSB7CglyZXR1cm4gZXZhbCggJ3VuZGVmaW5lZDtcbicgKyBjb2RlICk7Cn0KdmFyIGNvbnNvbGUgPSB7CglfaXRlbXMgOiBbXSwKCWxvZyA6IGZ1bmN0aW9uKCkgewoJCWNvbnNvbGUuX2l0ZW1zLnB1c2guYXBwbHkoIGNvbnNvbGUuX2l0ZW1zLCBhcmd1bWVudHMgKTsKCX0KfTsKY29uc29sZS5lcnJvciA9IGNvbnNvbGUuaW5mbyA9IGNvbnNvbGUuZGVidWcgPSBjb25zb2xlLmxvZzsKCihmdW5jdGlvbigpewoJInVzZSBzdHJpY3QiOwoKCWdsb2JhbC5vbm1lc3NhZ2UgPSBmdW5jdGlvbiAoIGV2ZW50ICkgewoJCXBvc3RNZXNzYWdlKHsKCQkJZXZlbnQgOiAnc3RhcnQnCgkJfSk7CgoJCXZhciBqc29uU3RyaW5naWZ5ID0gSlNPTi5zdHJpbmdpZnksIC8qYmFja3VwKi8KCQkJcmVzdWx0OwoKCQl0cnkgewoJCQlyZXN1bHQgPSBleGVjKCBldmVudC5kYXRhICk7CgkJfQoJCWNhdGNoICggZSApIHsKCQkJcmVzdWx0ID0gZS50b1N0cmluZygpOwoJCX0KCgkJLypKU09OIGRvZXMgbm90IGxpa2UgYW55IG9mIHRoZSBmb2xsb3dpbmcqLwoJCXZhciBzdHJ1bmcgPSB7CgkJCUZ1bmN0aW9uICA6IHRydWUsIEVycm9yICA6IHRydWUsCgkJCVVuZGVmaW5lZCA6IHRydWUsIFJlZ0V4cCA6IHRydWUKCQl9OwoJCXZhciBzaG91bGRfc3RyaW5nID0gZnVuY3Rpb24gKCB2YWx1ZSApIHsKCQkJdmFyIHR5cGUgPSAoIHt9ICkudG9TdHJpbmcuY2FsbCggdmFsdWUgKS5zbGljZSggOCwgLTEgKTsKCgkJCWlmICggdHlwZSBpbiBzdHJ1bmcgKSB7CgkJCQlyZXR1cm4gdHJ1ZTsKCQkJfQoJCQkvKm5laXRoZXIgZG9lcyBpdCBmZWVsIGNvbXBhc3Npb25hdGUgYWJvdXQgTmFOIG9yIEluZmluaXR5Ki8KCQkJcmV0dXJuIHZhbHVlICE9PSB2YWx1ZSB8fCB2YWx1ZSA9PT0gSW5maW5pdHk7CgkJfTsKCgkJdmFyIHJldml2ZXIgPSBmdW5jdGlvbiAoIGtleSwgdmFsdWUgKSB7CgkJCXZhciBvdXRwdXQ7CgoJCQlpZiAoIHNob3VsZF9zdHJpbmcodmFsdWUpICkgewoJCQkJb3V0cHV0ID0gJycgKyB2YWx1ZTsKCQkJfQoJCQllbHNlIHsKCQkJCW91dHB1dCA9IHZhbHVlOwoJCQl9CgoJCQlyZXR1cm4gb3V0cHV0OwoJCX07CgoJCXBvc3RNZXNzYWdlKHsKCQkJYW5zd2VyIDoganNvblN0cmluZ2lmeSggcmVzdWx0LCByZXZpdmVyICksCgkJCWxvZyAgICA6IGpzb25TdHJpbmdpZnkoIGNvbnNvbGUuX2l0ZW1zLCByZXZpdmVyICkuc2xpY2UoIDEsIC0xICkKCQl9KTsKCX07Cn0pKCk7Cg==' );
-var blob = new Blob( [worker_code], { type : 'application/javascript' } ),
-	code_url = window.URL.createObjectURL( blob );
+  if ( str.length > 400 ) {
+    ret = '`' +  str.slice(0, 400) + '` (snip)';
+  }
+  else {
+    ret = '`' + str +'`';
+  }
 
-setTimeout(function () {
-    if (bot.devMode) {
-        return;
-    }
-    IO.injectScript( 'https://raw.github.com/jashkenas/coffee-script/master/extras/coffee-script.js' );
-}, 1000);
-
-return function ( code, cb ) {
-	var worker = new Worker( code_url ),
-		timeout;
-
-	if ( code[0] === 'c' ) {
-		code = CoffeeScript.compile( code.replace(/^c>/, ''), {bare:1} );
-	}
-	else {
-		code = code.replace( /^>/, '' );
-	}
-
-	worker.onmessage = function ( evt ) {
-		var type = evt.data.event;
-		if ( type === 'start' ) {
-			start();
-		}
-		else {
-			finish( dressUpAnswer(evt.data) );
-		}
-	};
-
-	worker.onerror = function ( error ) {
-        bot.log( error, 'eval worker.onerror' );
-		finish( error.toString() );
-	};
-
-	//and it all boils down to this...
-	worker.postMessage( code );
-	//so fucking cool.
-
-	function start () {
-		if ( timeout ) {
-			return;
-		}
-
-		timeout = window.setTimeout(function () {
-			finish( 'Maximum execution time exceeded' );
-		}, 500 );
-	}
-
-	function finish ( result ) {
-		clearTimeout( timeout );
-		worker.terminate();
-
-		if ( cb && cb.call ) {
-			cb( result );
-		}
-		else {
-			console.warn( 'eval did not get callback' );
-		}
-	}
-};
+  return ret;
+}
 
 function dressUpAnswer ( answerObj ) {
-	bot.log( answerObj, 'eval answerObj' );
-	var answer = answerObj.answer,
-		log = answerObj.log,
-		result;
+  bot.log( answerObj, 'eval answerObj' );
+  var answer = answerObj.answer,
+    log = answerObj.log,
+    result;
 
-	if ( answer === undefined ) {
-		return 'Malformed output from web-worker. If you weren\'t just ' +
-			'fooling around trying to break me, raise an issue or contact ' +
-			'Zirak';
-	}
+  if ( answer === undefined ) {
+    return 'Malformed output from web-worker. If you weren\'t just ' +
+      'fooling around trying to break me, raise an issue or contact ' +
+      'Zirak';
+  }
 
-	result = snipAndCodify( answer );
+  result = snipAndCodify( answer );
 
-	if ( log && log.length ) {
-		result += ' Logged: ' + snipAndCodify( log );
-	}
+  if ( log && log.length ) {
+    result += ' Logged: ' + snipAndCodify( log );
+  }
 
-	return result;
+  return result;
 }
-function snipAndCodify ( str ) {
-	var ret;
 
-	if ( str.length > 400 ) {
-		ret = '`' +  str.slice(0, 400) + '` (snip)';
-	}
-	else {
-		ret = '`' + str +'`';
-	}
+  var evil = function ( code, cb ) {
+    if (cluster.isMaster) {
+      var worker = cluster.fork(),
+        timeout;
 
-	return ret;
-}
-}());
+      if ( code[0] === 'c' ) {
+        code = coffee.compile( code.replace(/^c>/, ''), {bare:1} );
+      }
+      else {
+        code = code.replace( /^>/, '' );
+      }
+
+      worker.on('message', function ( evt ) {
+        console.log('message');
+        console.log(evt);
+        var type = evt.data.event;
+        if ( type === 'start' ) {
+          start();
+        }
+        else {
+          finish( dressUpAnswer(evt.data) );
+        }
+      });
+
+      worker.on('error', function ( error ) {
+        bot.log( error, 'eval worker.onerror' );
+        finish( error.toString() );
+      });
+
+      //and it all boils down to this...
+      worker.send( code );
+      //so fucking cool.
+
+      function start () {
+        if ( timeout ) {
+          return;
+        }
+
+        timeout = setTimeout(function () {
+          finish( 'Maximum execution time exceeded' );
+        }, 500 );
+      }
+
+      function finish ( result ) {
+        clearTimeout( timeout );
+        worker.terminate();
+
+        if ( cb && cb.call ) {
+          cb( result );
+        }
+        else {
+          console.warn( 'eval did not get callback' );
+        }
+      }
+    } else if (cluster.isWorker) {
+      process.send('test');
+      var global = this;
+      /*most extra functions could be possibly unsafe*/
+      var whitey = {
+        'Array'              : 1,
+        'Boolean'            : 1,
+        'console'            : 1,
+        'Date'               : 1,
+        'Error'              : 1,
+        'EvalError'          : 1,
+        'exec'               : 1,
+        'Function'           : 1,
+        'Infinity'           : 1,
+        'JSON'               : 1,
+        'Math'               : 1,
+        'NaN'                : 1,
+        'Number'             : 1,
+        'Object'             : 1,
+        'RangeError'         : 1,
+        'ReferenceError'     : 1,
+        'RegExp'             : 1,
+        'String'             : 1,
+        'SyntaxError'        : 1,
+        'TypeError'          : 1,
+        'URIError'           : 1,
+        'atob'               : 1,
+        'btoa'               : 1,
+        'decodeURI'          : 1,
+        'decodeURIComponent' : 1,
+        'encodeURI'          : 1,
+        'encodeURIComponent' : 1,
+        'eval'               : 1,
+        'global'             : 1,
+        'isFinite'           : 1,
+        'isNaN'              : 1,
+        'onmessage'          : 1,
+        'parseFloat'         : 1,
+        'parseInt'           : 1,
+        'postMessage'        : 1,
+        'self'               : 1,
+        'undefined'          : 1,
+        'whitey'             : 1,
+
+        /* typed arrays and shit */
+        'ArrayBuffer'       : 1,
+        'Blob'              : 1,
+        'Float32Array'      : 1,
+        'Float64Array'      : 1,
+        'Int8Array'         : 1,
+        'Int16Array'        : 1,
+        'Int32Array'        : 1,
+        'Uint8Array'        : 1,
+        'Uint16Array'       : 1,
+        'Uint32Array'       : 1,
+        'Uint8ClampedArray' : 1,
+
+        /*
+        these properties allow FF to function. without them, a fuckfest of
+        inexplicable errors enuses. took me about 4 hours to track these fuckers
+        down.
+        fuck hell it isn't future-proof, but the errors thrown are uncatchable
+        and untracable. so a heads-up. enjoy, future-me!
+        */
+        'DOMException' : 1,
+        'Event'        : 1,
+        'MessageEvent' : 1,
+        'WorkerMessageEvent': 1
+      };
+
+      [ global, Object.getPrototypeOf(global) ].forEach(function ( obj ) {
+        Object.getOwnPropertyNames( obj ).forEach(function( prop ) {
+          if( whitey.hasOwnProperty(prop) ) {
+            return;
+          }
+          try {
+            Object.defineProperty( obj, prop, {
+              get : function () {
+                /* TEE HEE */
+                throw new ReferenceError( prop + ' is not defined' );
+              },
+              configurable : false,
+              enumerable : false
+            });
+          }
+          catch ( e ) {
+            delete obj[ prop ];
+
+            if ( obj[ prop ] !== undefined ) {
+              obj[ prop ] = null;
+            }
+          }
+        });
+      });
+
+      Object.defineProperty( Array.prototype, 'join', {
+        writable: false,
+        configurable: false,
+        enumrable: false,
+
+        value: (function ( old ) {
+          return function ( arg ) {
+            if ( this.length > 500 || (arg && arg.length > 500) ) {
+              throw 'Exception: too many items';
+            }
+
+            return old.apply( this, arguments );
+          };
+        }( Array.prototype.join ))
+      });
+
+      /* we define it outside so it'll not be in strict mode */
+      var exec = function ( code ) {
+        return eval( 'undefined;\n' + code );
+      };
+      
+      (function(){
+        "use strict";
+
+        var console = {
+          _items : [],
+          log : function() {
+            console._items.push.apply( console._items, arguments );
+          }
+        };
+        console.error = console.info = console.debug = console.log;
+
+        process.on('message', function ( event ) {
+          process.send({
+            event : 'start'
+          });
+
+          var jsonStringify = JSON.stringify, /*backup*/
+            result;
+
+          try {
+            result = exec( event.data );
+          }
+          catch ( e ) {
+            result = e.toString();
+          }
+
+          /*JSON does not like any of the following*/
+          var strung = {
+            Function  : true, Error  : true,
+            Undefined : true, RegExp : true
+          };
+          var should_string = function ( value ) {
+            var type = ( {} ).toString.call( value ).slice( 8, -1 );
+
+            if ( type in strung ) {
+              return true;
+            }
+            /*neither does it feel compassionate about NaN or Infinity*/
+            return value !== value || value === Infinity;
+          };
+
+          var reviver = function ( key, value ) {
+            var output;
+
+            if ( should_string(value) ) {
+              output = '' + value;
+            }
+            else {
+              output = value;
+            }
+
+            return output;
+          };
+
+          process.send({
+            answer : jsonStringify( result, reviver ),
+            log    : jsonStringify( console._items, reviver ).slice( 1, -1 )
+          });
+        });
+      })();
+    }
+  };
+
+  bot.addCommand({
+    fun : evil,
+    name : '>',
+    permissions : {
+        del : 'NONE'
+    },
+    description : 'test',
+    unTellable : true
+  });
+};
