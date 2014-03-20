@@ -592,6 +592,7 @@ require('../bot-plugins/mdn')(bot, IO);
 require('../bot-plugins/substitution')(bot, IO);
 require('../bot-plugins/doge')(bot, IO);
 require('../bot-plugins/undo')(bot, IO);
+require('../bot-plugins/botsnack')(bot);
 // require('../bot-plugins/unonebox')(bot, IO);
 // require('../bot-plugins/roomPermissions')(bot, IO);
 // require('../bot-plugins/welcome')(bot, IO);
