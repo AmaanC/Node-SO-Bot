@@ -30,13 +30,12 @@ var initLogin = function (getURL, formURL, formObj, callback) {
 // Note that the auth function does append the fkey to the formObj sent in the POST request
 var auth = function (window, formURL, formObj, callback) {
 	var fkey = window.document.querySelector('input[name="fkey"]').value;
-	var obj = formObj;
-	obj.fkey = fkey;
+	formObj.fkey = fkey;
 
 	request.post({
 		followAllRedirects: true,
 		url: formURL,
-		form: obj
+		form: formObj
 	}, function(error, response, body) {
 		jsdom.env(body, function (errors, window){
 			callback();
