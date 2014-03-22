@@ -20,6 +20,7 @@
   "dependencies": {
     "request": "2.x",
     "jsdom": "0.10.x",
-    "websocket": "1.0.x"
+    "websocket": "1.0.x",
+    "coffee-script": "^1.7.1"
   }
 }
