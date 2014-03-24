@@ -392,6 +392,14 @@ bot.Command = function ( cmd ) {
 	return cmd;
 };
 
+var users = require('./users')(bot, IO);
+if ( bot.users ) {
+	bot.users = Object.merge( users, bot.users );
+} else {
+	bot.users = users;
+}
+console.log(bot.users);
+
 //a normally priviliged command which can be executed if enough people use it
 bot.CommunityCommand = function ( command, req ) {
 	var cmd = this.Command( command ),
@@ -511,8 +519,8 @@ bot.Message = function ( text, msgObj ) {
 			return match;
 		},
 
-		findUserId   : bot.users.findUserId,
-		findUsername : bot.users.findUsername,
+		findUserId   : users.findUserId,
+		findUsername : users.findUsername,
 
 		codify : bot.adapter.codify.bind( bot.adapter ),
 		escape : bot.adapter.escape.bind( bot.adapter ),
@@ -593,11 +601,13 @@ require('../bot-plugins/substitution')(bot, IO);
 require('../bot-plugins/doge')(bot, IO);
 require('../bot-plugins/undo')(bot, IO);
 require('../bot-plugins/botsnack')(bot);
+require('../bot-plugins/mustache')(bot);
+require('../bot-plugins/mood')(bot);
 // require('../bot-plugins/unonebox')(bot, IO);
 // require('../bot-plugins/roomPermissions')(bot, IO);
 // require('../bot-plugins/welcome')(bot, IO);
 
-require('./eval')(bot);
+//require('./eval')(bot);
 /*
 bot.eval('!!> console.log("yarp")', function(err, data) {
 	console.log(err, data);

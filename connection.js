@@ -53,6 +53,7 @@ var loginChat = function (callback) {
 		jsdom.env(body, function (errors, window) {
 			chatFkey = window.document.querySelector('input[name="fkey"]').value;
 			bot.fkey = chatFkey;
+			bot.users = window.users;
 
 			callback();
 		});

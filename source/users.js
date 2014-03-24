@@ -1,7 +1,8 @@
-(function () {
 "use strict";
 
-bot.users = {};
+module.exports = function(bot, IO) {
+
+var users = {};
 
 var joined = [];
 
@@ -13,7 +14,7 @@ var join = function ( msgObj, cb ) {
 IO.register( 'userjoin', function userjoin ( msgObj ) {
 	bot.log( msgObj, 'userjoin' );
 
-	var user = bot.users[ msgObj.user_id ];
+	var user = users[ msgObj.user_id ];
 	if ( !user ) {
 		join( msgObj, finish );
 	}
@@ -61,21 +62,21 @@ function requestInfo ( room, ids, cb ) {
 	}
 
 	function addUser ( user ) {
-		bot.users[ user.id ] = user;
+		users[ user.id ] = user;
 		cb( user );
 	}
 }
 
-bot.users.request = requestInfo;
+users.request = requestInfo;
 
-bot.users.findUserId = function ( username ) {
-	var ids = Object.keys( bot.users );
+users.findUserId = function ( username ) {
+	var ids = Object.keys( users );
 	username = normaliseName( username );
 
 	return ids.first( nameMatches ) || -1;
 
 	function nameMatches ( id ) {
-		return normaliseName( bot.users[id].name ) === username;
+		return normaliseName( users[id].name ) === username;
 	}
 
 	function normaliseName ( name ) {
@@ -83,18 +84,18 @@ bot.users.findUserId = function ( username ) {
 	}
 }.memoize();
 
-bot.users.findUsername = (function () {
+users.findUsername = (function () {
 var cache = {};
 
 return function ( id, cb ) {
 	if ( cache[id] ) {
 		finish( cache[id] );
 	}
-	else if ( bot.users[id] ) {
-		finish( bot.users[id].name );
+	else if ( users[id] ) {
+		finish( users[id].name );
 	}
 	else {
-		bot.users.request( bot.adapter.roomid, id, reqFinish );
+		users.request( bot.adapter.roomid, id, reqFinish );
 	}
 
 	function reqFinish ( user ) {
@@ -105,12 +106,5 @@ return function ( id, cb ) {
 	}
 };
 })();
-
-function loadUsers () {
-	if ( window.users ) {
-		bot.users = Object.merge( bot.users, window.users );
-	}
-}
-
-loadUsers();
-}());
+return users;
+};
